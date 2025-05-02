@@ -276,7 +276,7 @@ static iomux_v3_cfg_t const usdhc3_pads[] = {
 	IOMUX_PADS(PAD_SD3_DAT1__SD3_DATA1 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT2__SD3_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT3__SD3_DATA3 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_DAT4__GPIO7_IO01	| MUX_PAD_CTRL(NO_PAD_CTRL)), /* CD */
+	IOMUX_PADS(PAD_SD3_DAT5__GPIO7_IO00	| MUX_PAD_CTRL(NO_PAD_CTRL)), /* CD */
 	 /* CD */
 };
 
@@ -300,7 +300,7 @@ struct fsl_esdhc_cfg usdhc_cfg[3] = {
 };
 
 #define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 1)
-#define USDHC3_CD_GPIO	IMX_GPIO_NR(7, 1)
+#define USDHC3_CD_GPIO	IMX_GPIO_NR(7, 0)
 
 int board_mmc_getcd(struct mmc *mmc)
 {
