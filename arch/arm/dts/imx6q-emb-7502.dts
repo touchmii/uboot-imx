@@ -6,18 +6,18 @@
 /dts-v1/;
 
 #include "imx6q.dtsi"
-#include "imx6qdl-sabresd.dtsi"
+#include "imx6qdl-emb-7502.dtsi"
 
 / {
-	model = "i.MX6 Quad SABRE Smart Device Board";
+	model = "i.MX6 Quad EMB-7502 Board";
 	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
 };
 
-&battery {
-	offset-charger = <1900>;
-	offset-discharger = <1694>;
-	offset-usb-charger = <1685>;
-};
+// &battery {
+// 	offset-charger = <1900>;
+// 	offset-discharger = <1694>;
+// 	offset-usb-charger = <1685>;
+// };
 
 &ldb {
 	lvds-channel@0 {

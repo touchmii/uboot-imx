@@ -84,8 +84,10 @@ int dram_init(void)
 }
 
 static iomux_v3_cfg_t const uart1_pads[] = {
-	IOMUX_PADS(PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
-	IOMUX_PADS(PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
+	// IOMUX_PADS(PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
+	// IOMUX_PADS(PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD3_DAT7__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD3_DAT6__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
 };
 
 #ifdef CONFIG_MXC_SPI
@@ -264,10 +266,6 @@ static iomux_v3_cfg_t const usdhc2_pads[] = {
 	IOMUX_PADS(PAD_SD2_DAT1__SD2_DATA1	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD2_DAT2__SD2_DATA2	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD2_DAT3__SD2_DATA3	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D4__SD2_DATA4	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D5__SD2_DATA5	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D6__SD2_DATA6	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D7__SD2_DATA7	| MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_NANDF_D2__GPIO2_IO02	| MUX_PAD_CTRL(NO_PAD_CTRL)), /* CD */
 };
 
@@ -278,11 +276,8 @@ static iomux_v3_cfg_t const usdhc3_pads[] = {
 	IOMUX_PADS(PAD_SD3_DAT1__SD3_DATA1 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT2__SD3_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT3__SD3_DATA3 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_DAT4__SD3_DATA4 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_DAT5__SD3_DATA5 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_DAT6__SD3_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_SD3_DAT7__SD3_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL)),
-	IOMUX_PADS(PAD_NANDF_D0__GPIO2_IO00    | MUX_PAD_CTRL(NO_PAD_CTRL)), /* CD */
+	IOMUX_PADS(PAD_SD3_DAT4__GPIO7_IO01	| MUX_PAD_CTRL(NO_PAD_CTRL)), /* CD */
+	 /* CD */
 };
 
 static iomux_v3_cfg_t const usdhc4_pads[] = {
@@ -304,8 +299,8 @@ struct fsl_esdhc_cfg usdhc_cfg[3] = {
 	{USDHC4_BASE_ADDR},
 };
 
-#define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 2)
-#define USDHC3_CD_GPIO	IMX_GPIO_NR(2, 0)
+#define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 1)
+#define USDHC3_CD_GPIO	IMX_GPIO_NR(7, 1)
 
 int board_mmc_getcd(struct mmc *mmc)
 {
@@ -318,9 +313,12 @@ int board_mmc_getcd(struct mmc *mmc)
 		break;
 	case USDHC3_BASE_ADDR:
 		ret = !gpio_get_value(USDHC3_CD_GPIO);
+		// ret = 1;
+		// printf("USDHC3_CD_GPIO: %d\n", ret);
 		break;
 	case USDHC4_BASE_ADDR:
 		ret = 1; /* eMMC/uSDHC4 is always present */
+		// printf("USDHC4_CD_GPIO: %d\n", ret);
 		break;
 	}
 
@@ -331,6 +329,14 @@ int board_mmc_init(bd_t *bis)
 {
 	struct src *psrc = (struct src *)SRC_BASE_ADDR;
 	unsigned reg = readl(&psrc->sbmr1) >> 11;
+	int ret;
+	// 先请求GPIO pins
+    // gpio_request(USDHC2_CD_GPIO, "USDHC2 CD");
+    gpio_request(USDHC3_CD_GPIO, "USDHC3 CD"); 
+    
+    // gpio_direction_input(USDHC2_CD_GPIO);
+    gpio_direction_input(USDHC3_CD_GPIO);
+
 	/*
 	 * Upon reading BOOT_CFG register the following map is done:
 	 * Bit 11 and 12 of BOOT_CFG register can determine the current
@@ -339,7 +345,8 @@ int board_mmc_init(bd_t *bis)
 	 * 0x2                  SD2
 	 * 0x3                  SD4
 	 */
-
+	//板载uboot设置了sbmr1寄存器
+	reg = 3;
 	switch (reg & 0x3) {
 	case 0x1:
 		SETUP_IOMUX_PADS(usdhc2_pads);
@@ -361,7 +368,20 @@ int board_mmc_init(bd_t *bis)
 		break;
 	}
 
-	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
+	ret = fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
+	if (ret)
+		return ret;
+	
+    /*
+     * 始终初始化 SD3 作为第三个 MMC 设备 
+     */
+	// printf("USDHC3_BASE_ADDR: %x\n", USDHC3_BASE_ADDR);
+    SETUP_IOMUX_PADS(usdhc3_pads);
+    usdhc_cfg[1].esdhc_base = USDHC3_BASE_ADDR; 
+    usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
+    ret = fsl_esdhc_initialize(bis, &usdhc_cfg[1]);
+    if (ret)
+        return ret;		
 }
 #endif
 #endif
@@ -775,7 +795,6 @@ int overwrite_console(void)
 
 static void setup_fec(void)
 {
-	if (is_mx6dqp()) {
 		int ret;
 
 		/* select ENET MAC0 TX clock from PLL */
@@ -783,7 +802,6 @@ static void setup_fec(void)
 		ret = enable_fec_anatop_clock(0, ENET_125MHZ);
 		if (ret)
 		    printf("Error fec anatop clock settings!\n");
-	}
 }
 
 #ifdef CONFIG_USB_EHCI_MX6
@@ -852,6 +870,7 @@ int board_init(void)
 #ifdef CONFIG_POWER
 int power_init_board(void)
 {
+	return 0;
 	struct pmic *pfuze;
 	unsigned int reg;
 	int ret;
@@ -1216,7 +1235,7 @@ void ldo_mode_set(int ldo_bypass)
 #ifdef CONFIG_CMD_BMODE
 static const struct boot_mode board_boot_modes[] = {
 	/* 4 bit bus width */
-	{"sd2",	 MAKE_CFGVAL(0x40, 0x28, 0x00, 0x00)},
+	{"sd1",	 MAKE_CFGVAL(0x40, 0x28, 0x00, 0x00)},
 	{"sd3",	 MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
 	/* 8 bit bus width */
 	{"emmc", MAKE_CFGVAL(0x60, 0x58, 0x00, 0x00)},
