@@ -48,7 +48,7 @@
 			regulator-max-microvolt = <5000000>;
 			gpio = <&gpio3 22 0>;
 			enable-active-high;
-			// vin-supply = <&swbst_reg>;
+			vin-supply = <&reg_3v3>;
 		};
 
 		reg_usb_h1_vbus: regulator@1 {
@@ -59,7 +59,7 @@
 			regulator-max-microvolt = <5000000>;
 			gpio = <&gpio1 29 0>;
 			enable-active-high;
-			// vin-supply = <&swbst_reg>;
+			vin-supply = <&reg_3v3>;
 		};
 
 		reg_audio: regulator@2 {
@@ -102,7 +102,7 @@
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
 			enable-active-high;
-			// hdmi-5v-supply = <&swbst_reg>;
+			hdmi-5v-supply = <&reg_3v3>;
 		};
 
 		reg_mipi_dsi_pwr_on: mipi_dsi_pwr_on {
@@ -118,6 +118,13 @@
 			regulator-name = "3.3V";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
+		};
+
+		reg_5v0: regulator-5v0 {
+		compatible = "regulator-fixed";
+		regulator-name = "5.0V";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
 		};
 	};
 
